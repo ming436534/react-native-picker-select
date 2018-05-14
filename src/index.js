@@ -85,16 +85,17 @@ export default class RNPickerSelect extends PureComponent {
 
     onValueChange(value, index) {
         this.props.onValueChange(value, index);
-
+        this.togglePicker(true);
         this.setState({
             selectedItem: this.state.items[index],
         });
     }
 
-    togglePicker(animate = false) {
+    togglePicker(animate = true) {
         if (this.props.disabled) {
             return;
         }
+        this.props.onTogglePicker && this.props.onTogglePicker(!this.state.showPicker);
         this.setState({
             animationType: animate ? this.props.animationType : undefined,
             showPicker: !this.state.showPicker,
@@ -173,7 +174,7 @@ export default class RNPickerSelect extends PureComponent {
                     hitSlop={{ top: 2, right: 2, bottom: 2, left: 2 }}
                 >
                     <View>
-                        <Text style={[styles.done, this.props.style.done]}>Done</Text>
+                        <Text style={[styles.done, this.props.style.done]}>{this.props.doneText}</Text>
                     </View>
                 </TouchableWithoutFeedback>
             </View>
