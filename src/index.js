@@ -13,6 +13,10 @@ import {
 import PropTypes from 'prop-types';
 import isEqual from 'lodash.isequal';
 
+import WheelPicker from 'react-native-wheel-picker';
+
+const WheelPickerItem = WheelPicker.Item;
+
 function handlePlaceholder({ placeholder }) {
     if (isEqual(placeholder, {})) {
         return [];
@@ -65,7 +69,7 @@ export default class RNPickerSelect extends PureComponent {
 
         this.onUpArrow = this.onUpArrow.bind(this);
         this.onDownArrow = this.onDownArrow.bind(this);
-        this.onValueChange = this.onValueChange.bind(this);
+        // this.onValueChange = this.onValueChange.bind(this);
         this.togglePicker = this.togglePicker.bind(this);
     }
 
@@ -83,12 +87,22 @@ export default class RNPickerSelect extends PureComponent {
         });
     }
 
-    onValueChange(value, index) {
-        this.props.onValueChange(value, index);
-        this.togglePicker(true);
-        this.setState({
-            selectedItem: this.state.items[index],
-        });
+    onValueChange = (value, index) => {
+        if (Platform.OS === 'ios') {
+            this.props.onValueChange(value, index);
+            this.togglePicker(true);
+            this.setState({
+                selectedItem: this.state.items[index],
+            });
+        } else {
+            if (this.state.items[value].value !== this.state.selectedItem.value) {
+                this.props.onValueChange(this.state.items[value].value, value);
+                this.togglePicker(true);
+                this.setState({
+                    selectedItem: this.state.items[value],
+                });
+            }
+        }
     }
 
     togglePicker(animate = true) {
@@ -243,43 +257,9 @@ export default class RNPickerSelect extends PureComponent {
         );
     }
 
-    renderAndroidHeadlessItems() {
-        return this.state.items.map((item) => {
-            let containerStyle;
-            let textStyle;
-            if (item.value === this.state.selectedItem.value) {
-                containerStyle = [styles.selectedContainer, this.props.style.selectedContainer];
-                textStyle = [styles.selectedText, this.props.style.selectedText];
-            } else {
-                containerStyle = [styles.notSelectedContainer, this.props.style.notSelectedContainer];
-                textStyle = [styles.notSelectedText, this.props.style.notSelectedText];
-            }
-            return (
-                <TouchableOpacity
-                    key={item.key || item.label}
-                    style={containerStyle}
-                    onPress={() => {
-                        this.onValueChange(item.value);
-                    }}
-                >
-                    <Text style={textStyle}>
-                        {item.label}
-                    </Text>
-                </TouchableOpacity>
-            );
-        });
-    }
-
     renderAndroidHeadless() {
-        // <Picker
-        //     style={{ position: 'absolute', top: 0, width: 1000, height: 1000 }}
-        //     onValueChange={this.onValueChange}
-        //     selectedValue={this.state.selectedItem.value}
-        //     testId="RNPickerSelectAndroid"
-        //     mode={this.props.mode}
-        //     enabled={!this.props.disabled}
-        // >
-        // {this.renderPickerItems()}
+        const selectedValueIndex = this.state.items.findIndex(item => item.value === this.state.selectedItem.value);
+        console.log(selectedValueIndex);
         return (
             <View style={[styles.viewContainer, this.props.style.viewContainer]}>
                 <TouchableWithoutFeedback
@@ -302,9 +282,6 @@ export default class RNPickerSelect extends PureComponent {
                     >
                         <TouchableOpacity
                             style={{flex: 1, justifyContent: 'center'}}
-                            onPress={() => {
-                                this.togglePicker(true);
-                            }}
                             activeOpacity={1}
                         >
                             <View style={{backgroundColor: 'white', paddingVertical: 12}}>
@@ -313,7 +290,15 @@ export default class RNPickerSelect extends PureComponent {
                                         <Text style={[styles.title, this.props.style.title]}>{this.props.title}</Text> : null
                                 }
                                 <View style={[styles.itemsContainer, this.props.itemsContainer]}>
-                                    {this.renderAndroidHeadlessItems()}
+                                    <WheelPicker
+                                        style={[styles.androidPickerStyle, this.props.androidPickerStyle]}
+                                        selectedValue={selectedValueIndex}
+                                        itemStyle={{fontSize: 26, color: 'black'}}
+                                        onValueChange={this.onValueChange}>
+                                            {this.state.items.map((item, idx) => (
+                                                <WheelPickerItem label={item.label} value={idx} key={item.key || item.label} />
+                                            ))}
+                                    </WheelPicker>
                                 </View>
                             </View>
                         </TouchableOpacity>
@@ -447,6 +432,9 @@ const styles = StyleSheet.create({
         height: 215,
         justifyContent: 'center',
         backgroundColor: '#D0D4DB',
+    },
+    androidPickerStyle: {
+        height: 215,
     },
     done: {
         color: '#007AFE',
