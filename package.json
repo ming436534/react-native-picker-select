@@ -14,7 +14,7 @@
     "files": ["LICENSE", "README.md", "src/index.js"],
     "dependencies": {
         "lodash.isequal": "^4.5.0",
-        "react-native-wheel-picker": "^1.2.0"
+        "react-native-wheel-picker": "https://github.com/ming436534/react-native-wheel-picker.git#44f35742d40cb26b8b5f0b465514d71837ebd83e"
     },
     "devDependencies": {
         "babel-jest": "^22.4.3",
